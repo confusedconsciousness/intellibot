@@ -1,0 +1,5 @@
+protobuf~=5.29.4
+slack_bolt~=1.23.0
+python-dotenv~=1.1.0
+slack_bolt~=1.23.0
+slack_sdk~=3.35.0
