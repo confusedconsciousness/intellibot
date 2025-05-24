@@ -20,6 +20,7 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 MAX_MESSAGE_PER_THREAD = 10
 
 
+
 # --- Slack Message Handler ---
 # This decorator registers a function to handle 'app_mention' events.
 # The bot will only respond when explicitly mentioned in a channel.
