@@ -1,4 +1,3 @@
-import threading
 import logging
 import os
 from slack_bolt import App
@@ -18,7 +17,6 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 model = genai.GenerativeModel("gemini-2.0-flash")
 MAX_MESSAGE_PER_THREAD = 10
-
 
 
 # --- Slack Message Handler ---
