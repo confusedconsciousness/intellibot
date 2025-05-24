@@ -101,7 +101,7 @@ class OpenAIModel(AIModel):
         self._model_name = model_name
         self._client = openai.OpenAI(api_key=self._api_key)
 
-    def generate_text(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs) -> str:
         """
         Generates text using the OpenAI API.
 

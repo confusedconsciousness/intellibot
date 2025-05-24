@@ -1,11 +1,14 @@
 import logging
 import os
+
+from openai import responses
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
 from slack_sdk.errors import SlackApiError
 
 from ai.AIModel import get_ai_model
+from ai.AiModelChain import AIModelChain, get_default_ai_model_chain
 
 load_dotenv()
 
@@ -15,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 MAX_MESSAGE_PER_THREAD = 10
+
+BOT_NAME = "Intellibot"
 
 
 # --- Slack Message Handler ---
@@ -50,13 +55,36 @@ def handle_app_mention(body, say):
     # build context for the LLM
     messages = app.client.conversations_replies(channel=channel_id, limit=MAX_MESSAGE_PER_THREAD, ts=thread_ts)[
         "messages"]
+    prompt = build_context(messages)
+
+    try:
+        # Initialize the Gemini model inside the handler for this specific call.
+        # We're now using 'gemini-pro' as requested.
+
+        logger.info(f"Calling AI model with prompt: {prompt}")
+        # Use the AI model chain to generate a response, which will try multiple models if one fails
+        response = get_default_ai_model_chain().generate(prompt)
+        answer = response
+    except Exception as e:
+        logger.error(f"An error occurred during AI model API call: {e}")
+        answer = "Sorry, I couldn't get a response from AI model."
+
+    # Send the LLM's response back to Slack
+    say(answer, thread_ts=thread_ts)
+
+
+def build_context(messages):
+    """
+    Builds a context string from the last few messages in the thread.
+    """
+    # build context for the LLM
     prompt_parts = []
     for message in messages:
         message_user_id = message.get("user")
         message_bot_id = message.get("bot_id")
         sender_name = "Unknown"
         if message_bot_id:
-            sender_name = "Intellibot"
+            sender_name = BOT_NAME
         elif message_user_id:
             try:
                 sender_name = app.client.users_info(user=message_user_id)["user"]["name"]
@@ -66,21 +94,7 @@ def handle_app_mention(body, say):
 
         prompt_parts.append(f"{sender_name}: {message.get('text', '')}")
 
-    prompt = "\n".join(prompt_parts)
-
-    try:
-        # Initialize the Gemini model inside the handler for this specific call.
-        # We're now using 'gemini-pro' as requested.
-
-        logger.info(f"Calling AI model with prompt: {prompt}")
-        response = get_ai_model("gemini").generate(prompt)  # Pass the prompt directly
-        answer = response
-    except Exception as e:
-        logger.error(f"An error occurred during Gemini API call: {e}")
-        answer = "Sorry, I couldn't get a response from Gemini."
-
-    # Send the LLM's response back to Slack
-    say(answer, thread_ts=thread_ts)
+    return "\n".join(prompt_parts)
 
 
 if __name__ == "__main__":
