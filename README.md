@@ -24,3 +24,6 @@ To create the embeddings, we are using the Google's `text-embedding-004` via `go
 
 In order to prepare our private knowledge base, we will need to get all the documents (pdfs, txt, markdowns, confluence) etc.
 We are going to use the `langchain` package to load these documents and create embeddings for them.
+
+# HLD
+![High Level Design](intellibot.png)
