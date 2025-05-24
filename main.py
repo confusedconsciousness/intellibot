@@ -3,8 +3,9 @@ import os
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
-import google.generativeai as genai
 from slack_sdk.errors import SlackApiError
+
+from ai.AIModel import get_ai_model
 
 load_dotenv()
 
@@ -12,10 +13,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
 app = App(token=os.getenv("SLACK_BOT_TOKEN"))
-model = genai.GenerativeModel("gemini-2.0-flash")
 MAX_MESSAGE_PER_THREAD = 10
 
 
@@ -74,11 +72,9 @@ def handle_app_mention(body, say):
         # Initialize the Gemini model inside the handler for this specific call.
         # We're now using 'gemini-pro' as requested.
 
-        logger.info(f"Calling Gemini API with prompt: {prompt}")
-        response = model.generate_content(prompt)  # Pass the prompt directly
-
-        # Extract the text from the Gemini response object
-        answer = response.text
+        logger.info(f"Calling AI model with prompt: {prompt}")
+        response = get_ai_model("gemini").generate(prompt)  # Pass the prompt directly
+        answer = response
     except Exception as e:
         logger.error(f"An error occurred during Gemini API call: {e}")
         answer = "Sorry, I couldn't get a response from Gemini."
