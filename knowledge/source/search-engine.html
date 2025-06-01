@@ -1,0 +1,881 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>Make your own search engine from Scratch</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	padding-inline-start: 0;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.page-description {
+	margin-bottom: 2em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+	empty-cells: show;
+}
+.simple-table td {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table th {
+	height: 29px;
+	min-width: 120px;
+}
+
+.simple-table-header-color {
+	background: rgb(247, 246, 243);
+	color: black;
+}
+.simple-table-header {
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(50, 48, 44, 1);
+}
+.highlight-gray {
+	color: rgba(115, 114, 110, 1);
+	fill: rgba(115, 114, 110, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.highlight-red {
+	color: rgba(205, 60, 58, 1);
+	fill: rgba(205, 60, 58, 1);
+}
+.highlight-default_background {
+	color: rgba(50, 48, 44, 1);
+}
+.highlight-gray_background {
+	background: rgba(248, 248, 247, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(248, 243, 252, 1);
+}
+.highlight-pink_background {
+	background: rgba(252, 241, 246, 1);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(115, 114, 110, 1);
+	fill: rgba(115, 114, 110, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(159, 107, 83, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(217, 115, 13, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 145, 47, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(68, 131, 97, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(51, 126, 169, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(144, 101, 176, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(193, 76, 138, 1);
+}
+.block-color-red {
+	color: rgba(205, 60, 58, 1);
+	fill: rgba(205, 60, 58, 1);
+}
+.block-color-default_background {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray_background {
+	background: rgba(248, 248, 247, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(248, 243, 252, 1);
+}
+.block-color-pink_background {
+	background: rgba(252, 241, 246, 1);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-uiBlue { background-color: undefined; }
+.select-value-color-pink { background-color: rgba(225, 136, 179, 0.27); }
+.select-value-color-purple { background-color: rgba(168, 129, 197, 0.27); }
+.select-value-color-green { background-color: rgba(123, 183, 129, 0.27); }
+.select-value-color-gray { background-color: rgba(84, 72, 49, 0.15); }
+.select-value-color-translucentGray { background-color: undefined; }
+.select-value-color-orange { background-color: rgba(224, 124, 57, 0.27); }
+.select-value-color-brown { background-color: rgba(210, 162, 141, 0.35); }
+.select-value-color-red { background-color: rgba(244, 171, 159, 0.4); }
+.select-value-color-yellow { background-color: rgba(236, 191, 66, 0.39); }
+.select-value-color-blue { background-color: rgba(93, 165, 206, 0.27); }
+.select-value-color-pageGlass { background-color: undefined; }
+.select-value-color-washGlass { background-color: undefined; }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="5086f27b-463e-4a96-9c30-c3b929e6ee08" class="page sans"><header><h1 class="page-title">Make your own search engine from Scratch</h1><p class="page-description"></p></header><div class="page-body"><p id="4ae5b824-aaae-4066-b02d-33761aef172e" class="">In this article we’ll be creating our very own search engine in Java from scratch. Yes, you heard it right, we’ll be creating an application that will take a webpage URL similar to what google webmaster does, will crawl it and will index it. After that we can feed in the query and it will throw us the results. Sounds Interesting? Let’s jump into it.</p><p id="9b23ea4b-9d8d-4045-905d-ddcd82fc6edc" class="">If you don’t understand what crawling or indexing means no worries, we’ll be diving deep into each of these terms. I’ll walk you through all the thought process and the code so that you can create your very own search engine, or you can simply go to the Github and fork the codebase and help yourself.</p><h2 id="8a200c55-1f98-4661-bb60-b3a44cb1fdd5" class="">Basics of Searching</h2><p id="595db463-7fbe-4f79-a5a8-e58d413bebb4" class="">Alright, Let’s start with the basics of searching. Let’s say you are given a phone book and you are asked to search for the name say Kishan. The only catch is that the pages are jumbled which means names starting with K can be anywhere. What will you do?</p><p id="88064df0-070a-49f8-bf45-b5db7b099436" class="">Well, the only option we are left with is to go manually over each page and look for that cool name. You see, things will be faster if there are only say 10 pages, but it will get tougher and tougher as we increase the number of pages to 1000 or even 10,000. </p><p id="a0a68123-a37d-466a-81b6-b9426d779a2d" class="">But, let’s think for a moment, what if we had the pages in sorted order? or, heck even if we had a table of contents that can tell us which page to go to for names starting with K? </p><p id="42160c47-91ae-4fad-b969-48a86f90e57c" class="">If that were the case the whole searching process will be done in mere seconds, don’t you think? No matter how many pages were there, all we need to do is to just go to that page number and we are done. This process is termed as Indexing. In more formal terms: </p><p id="508c837b-a2c3-41a9-93cd-b326db4597b6" class="">Indexing is a data structure (Table of Contens), that reduces the lookup of a particular data in a pool of datas. It is mostly used in the context of databases. </p><p id="3f9715a8-cea0-4d6f-9b29-45e56bd6c1ad" class="">You see, Internet is a large collection of websites; hundreds if not millions of pages are added each day, and Google or Bing can retrieve the information in fraction of milliseconds. The pages are stored somewhere right? Yes, they are stored in DBs, and if there is no indexing no matter how much computation power we throw at searching, it will take hours if not minutes. This is how Indexing is.</p><p id="7412169f-8a2e-4f58-afa1-29d50e23e2c2" class="">
+</p><p id="c9b9af1d-043a-4051-ba54-166cd809a249" class=""><strong>Alright, so how do we index a webpage? </strong></p><p id="a1bad515-52ff-464c-997c-78374d59ea4d" class="">Okay before going deep into the implementation, let’s take a step back and think what will be our purpose of indexing? </p><p id="8ec6f9fe-aeff-41a4-825f-88d64195c13b" class="">Our purpose, should we accept it is to retrieve the relevant webpages if user searches for a certain term. For e.g. If I am typing “<strong>Cosmos</strong>” in Google search I should be getting all the results of webpages that talks about cosmos, right? </p><figure id="9ed56c42-7ded-4de2-9ba0-bfc4db82b383" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.37.29_PM.png"><img style="width:3276px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.37.29_PM.png"/></a></figure><p id="43f56e9e-9784-4262-b523-79b58d0c09f6" class="">In above screenshot, we can see, that google thows about millions of web pages and ranks them based on some algorithm. More importantly, all these webpages will definitely contain the term “Cosmos” in them.</p><p id="68caf084-ed4a-4e77-9bb5-08f3bb89feb8" class=""><strong>How are we going to achieve that?</strong></p><p id="8f552387-ca43-43e5-b28c-413b529cd220" class="">Well, there is a term called Inverted Index. Where we store the term and all the websites it has appeared into.</p><p id="412a690f-9ecd-4e6d-8137-d4afaf1774da" class="">For e.g:</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="a407f584-bfb2-418f-9738-0dbd82a2ea6c" class="code"><code class="language-JavaScript">{
+	 &quot;cosmos&quot;: [&quot;www.wikipedia.org/cosmos&quot;, &quot;www.imdb.com/cosmos&quot;, ...]
+}</code></pre><p id="04098b6e-1ef6-4431-bb2a-9b89e46ff6a5" class="">Think of it as a map of terms vs all the websites that it has appeared into. We call this data structure Inverted Index. </p><p id="4fd1c460-0523-4781-b12a-ff0d328c99de" class="">So if somebody searched for cosmos, we’ll look into our index and throw them all the websites that we have seen so far. But wait a minute, how do we decide the order? Because it is the most important aspect right? Yeah I know, but explaning that would take a whole year. Just kidding, we’ll cover that important stuff in our future article. In this article, all we’ll do is to give them all the results present in the list. No ordering, because we don’t discriminate.</p><p id="266a3bab-080a-4c2c-bfab-aa2b54f8ed97" class=""><strong>Enough blabbering, How are we gonna build it?</strong></p><p id="9e0ec7bb-d12f-455c-ac21-1d9e8091ab5d" class="">Well, on the scale at which Google operates, this index can’t be stored in one place, heck not even in one datacenter. They’ll need sharded databases (NoSQL) to store such a high volume of data. But since we are just starting out we’ll store this information in memory. HeHe. </p><p id="9870a52a-1cb6-456b-a04c-18659621c6a8" class="">Okay, let’s divide the process:</p><ol type="1" id="01979f36-c205-48f2-878d-db73f2009491" class="numbered-list" start="1"><li>Fetch the content of the webpage (which will be done by our crawler, discussed later in detail). </li></ol><ol type="1" id="a05cf568-b7a5-42e0-a362-b99c1f82cae9" class="numbered-list" start="2"><li>Preprocess the content. For e.g. conver the content to lowecase.</li></ol><ol type="1" id="05889086-c818-46d7-bb99-cecfc3af81e8" class="numbered-list" start="3"><li>Split the content into words or what is called Tokens in NLP (Natural Language Processing).</li></ol><ol type="1" id="fed404f3-ad80-4206-bfba-ce2b707a1da4" class="numbered-list" start="4"><li>For each word go through a process called lemmatization / Stemming. </li></ol><ol type="1" id="b38e0db5-10c2-49ce-bf25-4b31192d1936" class="numbered-list" start="5"><li>Remove the stop words, punctuations, special characters etc.</li></ol><ol type="1" id="7a923ef3-a749-4ef2-8d30-604491eacd22" class="numbered-list" start="6"><li>Build the Inverted Index</li></ol><p id="cd508914-4a0d-4854-acec-94db4768fef5" class="">
+</p><p id="c8ad9bf4-4f3a-4412-9f2b-b7543a22c8c2" class="">I think it would be better to show you via an example to just explain each term. Following is a content from a webpage that doesn’t exists. It talks about some universe and stuff:</p><p id="faa1859f-6e72-4183-9880-b882cfdecf56" class="">Step 1: First we’ll fetch the content, and we got:</p><p id="f52cff66-03f8-49ac-b605-cdf8f0954bbc" class=""><code>The universe is everything that exists, from the smallest particles to the largest galaxies. It is estimated to be around 13.8 billion years old, and it is still expanding and evolving. The universe is composed of various forms of matter and energy, such as stars, planets, black holes, dark matter, and dark energy</code>.</p><p id="a7282246-33e8-4f7f-a771-478365f041e8" class="">Step 2: Preprocess the content</p><p id="7643e9d2-d8f5-4bf7-b8d4-e8770d73f692" class=""><code>the universe is everything that exists, from the smallest particles to the largest galaxies. it is estimated to be around 13.8 billion years old, and it is still expanding and evolving. the universe is composed of various forms of matter and energy, such as stars, planets, black holes, dark matter, and dark energy</code></p><p id="edab2be6-4c51-4d83-8bc3-6bcd27b9b657" class="">Step 3: Split the content into words or tokens</p><p id="e6e5110f-84f2-4172-bb50-f6c558aef528" class=""><code>The, universe, is, everything, that, exists, from, the, smallest, particles, to, the, largest, galaxies, It, is, estimated, to, be, around, 13.8, billion, years, old, and, it, is, still, expanding, and, evolving, The, universe, is, composed, of, various, forms, of, matter, and, energy, such, as, stars, planets, black, holes, dark, matter, and, dark, energy.</code></p><p id="a563c543-a2d3-4315-9d31-0b54d332ab0a" class="">Step 4: Lemmatization: It is a process of reducing a word to its base or dictionary form, known as lemma. But why would we do that? <strong>Because if we don’t computer will consider </strong><span style="border-bottom:0.05em solid"><strong>think </strong></span><strong>and </strong><span style="border-bottom:0.05em solid"><strong>thinking </strong></span><strong>as two different words which actually isn’t</strong>. </p><p id="54eb2df9-5dff-415b-9af3-22f6ae9bf948" class=""><code>the universe be everything that exist , from the small particle to the large galaxy . it be estimate to be around 13.8 billion year old , and it be still expand and evolve . the universe be compose of various form of matter and energy , such as star , planet , black hole , dark matter , and dark energy</code></p><p id="df53cd69-d09f-4d01-a178-8683f028c56e" class="">Step 5: remove the stop words, punctuations, special characters etc.</p><p id="ca88b7f6-dd1e-427f-b3d9-7897042e743a" class=""><code>universe everything exists smallest particles largest galaxies estimated around billion years old still expanding evolving universe composed various forms matter energy stars planets black holes dark matter dark energy</code></p><p id="68f23339-41b3-461d-b1ed-825912d8827b" class="">Step 6: The most important part where we build the Inverted Index. Here we take each term and map that to the corresponding website it appeared into. </p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="fafdcaf2-4b38-427a-b932-a0511ab47202" class="code"><code class="language-JavaScript">{
+    &quot;universe&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;everything&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;exists&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;smallest&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+ ...
+    ],
+    &quot;holes&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;matter&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;dark&quot;: [
+        &quot;http://www.universe.com&quot;
+    ],
+    &quot;energy&quot;: [
+        &quot;http://www.universe.com&quot;
+    ]
+}</code></pre><p id="3c4c6f95-48e9-4d23-b44e-5d620fd44fbf" class="">So, now if anybody wants to search for say “energy”, we’ll look into this map and will return the website: “http://www.universe.com”.</p><p id="14a1b8a6-f35d-482b-a12d-0dca9ca43d6f" class="">Please note, I have oversimplified it a bit so that it is easy to comprehend. </p><h2 id="1650c11b-6d29-4933-aa91-257c3a237abc" class="">Let’s code our Engine</h2><p id="5e29aef1-7220-4579-a303-bcba3e621577" class="">Since I am using Java, I’ll be using the Dropwizard framework. It’s quite intuitive to follow. If you’d like to learn more about it, I have written a detailed article to get started with it.</p><p id="d7ec36d4-9205-4d7a-b463-0aeff6764a2b" class="">(link to article)</p><p id="d0834688-e06a-4210-9d95-a45cf5fd4d96" class="">Let’s first understand what all APIs we’ll be exposing. </p><ol type="1" id="8ac972e1-52f7-425c-8dc5-a1f004b3a12a" class="numbered-list" start="1"><li>We would want users to come and submit their website to our search engine. This is similar to what Google webmaster does. You manually go and ask the Google, hey, this is my wonderful website and I’d like it to get indexed the next time somebody searches for it. Can you crawl and index it please? When the user submits their website, the crawlers or simply servers scrap the website, go through all our processes that we explained above and index it.</li></ol><ol type="1" id="561444c9-2526-4f2c-a7ea-1f7e2477396e" class="numbered-list" start="2"><li>We would also want our user to search by providing the query.</li></ol><p id="435250a2-3b3e-44ad-a130-02463d46d904" class="">So, all we need is two APIs. </p><h3 id="2b1e9b29-2de7-4de6-b1b4-6754fc11b538" class="">Crawl API</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="7d35f872-0381-4183-bcc4-eacb1e1116f0" class="code"><code class="language-JavaScript">POST /crawl?url=http://0xkishan.com&amp;crawlChildren=false</code></pre><p id="e97cc126-a8ab-4a88-a7aa-1724f066924a" class="">The crawl api will take two query parameters:</p><ol type="1" id="7aaf1292-25fd-42e6-b7f5-8078c49ecb89" class="numbered-list" start="1"><li><code>url</code>: the website that you want to get indexed onto our search engine</li></ol><ol type="1" id="9469dd34-9677-4591-9641-dab9c99c81e8" class="numbered-list" start="2"><li><code>crawlChildren</code>: whether you want the links that are present inside the url to be indexed as well?</li></ol><p id="ad15f1d3-17c0-4e8e-940e-6fe679bf997f" class="">Here’s the code for this. I have called this class Webmaster, and it exposes an endpoint <code>/crawl </code>where the user can submit the url to be indexed.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="c537e69d-441d-4f7b-839d-262af9a4f56b" class="code"><code class="language-JavaScript">@Path(&quot;/&quot;)
+@Tag(name = &quot;Webmaster APIs&quot;, 
+description = &quot;Use these APIs to crawl a website and make it indexable&quot;)
+@Produces(&quot;application/json&quot;)
+@Consumes(&quot;application/json&quot;)
+@AllArgsConstructor(onConstructor = @__(@Inject))
+@Slf4j
+public class Webmaster{
+    private Crawler crawler;
+
+    @POST
+    @Path(&quot;/crawl&quot;)
+    public Response crawl(@NonNull @QueryParam(&quot;url&quot;) final String url,
+                          @DefaultValue(&quot;false&quot;) @QueryParam(&quot;crawlChildren&quot;) final boolean crawlChildren) throws Exception {
+        try {
+            long start = System.currentTimeMillis();
+            crawler.crawl(url, crawlChildren, 0L);
+            long end = System.currentTimeMillis();
+            log.info(&quot;Successfully crawled the website in :{}ms&quot;, (end - start));
+            return Response.ok(200).build();
+        } catch (Exception e) {
+            log.error(&quot;Unable to crawl: &quot;, e);
+            throw e;
+        }
+    }
+}</code></pre><p id="18a5001e-6080-4d2f-8e02-da05a8caa159" class="">Notice, that we are calling a class called <code>Crawler</code>. Let’s dive into the <code>crawl()</code> method.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="6051c12b-aa01-4d69-982d-43c098314fe1" class="code"><code class="language-JavaScript">public void crawl(String url, boolean crawlChildren, long depth) {
+    if (depth &gt; crawlingConfiguration.getMaxDepth()) {
+        return;
+    }
+    if (crawledUrls.contains(url)) {
+        log.error(&quot;Already Crawled, Skipping...&quot;);
+        return;
+    }
+
+    log.info(&quot;crawling &quot; + url + &quot;...&quot;);
+    // scrape the data from the website
+    HtmlPage htmlPage = getHtmlPage(url);
+    if (Objects.isNull(htmlPage)) {
+        return;
+    }
+    // submit the page to the indexer (worker thread)
+    executorService.submit(() -&gt; indexer.index(buildDocument(htmlPage)));
+
+    List&lt;String&gt; urlsFound = htmlPage.getPage().getAnchors().stream().map(HtmlAnchor::getHrefAttribute).toList();
+    log.info(&quot;total urls found in: {} is: {}&quot;, url, urlsFound.size());
+
+    List&lt;String&gt; validUrls = filterMalformedUrls(urlsFound);
+    log.info(&quot;total valid urls found in: {} is: {} / {}&quot;, url, validUrls.size(), urlsFound.size());
+
+    if (crawlChildren) {
+        validUrls.forEach(validUrl -&gt; {
+            try {
+                crawl(validUrl, true, depth + 1L);
+            } catch (Exception e) {
+                log.error(&quot;unable to crawl: e&quot;, e);
+            }
+        });
+    }
+    crawledUrls.add(url);
+}</code></pre><p id="996d6c84-e5f5-427c-aa1e-f75464038d6f" class="">The crawl method takes three arguments: two are straightforward, but the third one might not be intuitive. It is called depth. When we visit a website it contains multiple hyperlink, if we have enabled the crawlChildren the crawler will crawl those hyperlinks as well, but those hyperlinks might also contain hyperlinks and so on. So it might be possible that this crawler will never stop, and since we are storing the index in memory, we are risking the application getting killed because of OOM (out of memory). So it is better to stop this at early stage. </p><p id="f25882f6-02fb-4f9e-afe4-3dbded011e8b" class="">If depth is set to 1. It means the crawler will crawl the current website and the hyperlinks just following it but not more than that. </p><p id="a1b05adb-c5c3-4ac5-bca8-f81750439db4" class="">Also, there can be possibility where one website links to another and another website links it back. Thus causing a cyclic dependency. In this case it will be better to store the url in a Set and before crawling the website simply check the set if this website has already being crawled. This will save us some compuation power.</p><p id="1ef054ff-e27f-4599-a28b-89e0e3856ebc" class="">But note that this is not how it is implemented in google, it is highly likely that you update your webpage frequently and you would want the crawler to index the new content. But for simplicity let’s not allow the websites if they have been crawled already. </p><p id="1e82514e-c0aa-4899-8687-ef222dbb56e7" class="">
+</p><p id="87e0e281-411b-4ea2-93ce-6d851effff48" class="">You’ll also notice that I am calling a method called getHtmlPage(). This is our scrapper actually. It brings us the content of the page in HTML format.  Here I am making use of <code>htmlunit </code>package. You could find the whole project on Github, so don’t worry about the versions and all. </p><p id="45dd7f0c-2790-41b0-90c4-60015afa8eb0" class=""> All this method do is just scrape the data from the url and provide it to you.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="429e4fa6-992a-4a19-b592-7f44b2b212c6" class="code"><code class="language-JavaScript">private static HtmlPage getHtmlPage(String url) {
+  HtmlPage htmlPage = null;
+  // fetch the website content
+  try (WebClient webClient = new WebClient()) {
+      webClient.getOptions().setCssEnabled(false);
+      webClient.getOptions().setJavaScriptEnabled(false);
+      htmlPage = webClient.getPage(url);
+  } catch (IOException e) {
+      log.info(&quot;Unable to fetch the page at {}&quot;, url);
+  }
+  return htmlPage;
+}</code></pre><p id="98c288ce-1ffa-42db-b9b9-32d0f2e91f66" class="">
+</p><p id="fe1a1052-5fc5-467d-ab3a-5df9ca5aed13" class="">After fetching the data, what do you think we should be doing? Yes, exactly, Indexing. Since indexing is a computationally expensive process we delegated this task to a worker thread.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="91eddce5-fba5-4561-b5ff-e1f0b152d35f" class="code"><code class="language-JavaScript">executorService.submit(() -&gt; indexer.index(buildDocument(htmlPage)));</code></pre><p id="36161932-3d1d-4842-90e4-13e67ec11e96" class="">But the indexer doesn’t expect an html page but a document that contains the body of the website and some other information such as the url, id etc, for that we first call <code>buildDocument()</code></p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="5077a91d-c1f8-49a4-8dc2-30396823cbb4" class="code"><code class="language-JavaScript">private Document buildDocument(HtmlPage htmlPage) {
+    return Document.builder()
+            .id(UUID.randomUUID().toString())
+            .title(htmlPage.getTitleText())
+            .url(htmlPage.getBaseURI())
+            .body(htmlPage.getPage()
+                    .getBody()
+                    .asNormalizedText())
+            .build();
+}</code></pre><p id="52a2ff6d-d3ff-4b87-b50a-4dcb8aa6ec8a" class="">
+</p><p id="2f772533-9d24-4f04-be26-718a32b74825" class="">After this, we check for all the hyperlinks present in the current webpage. If the hyperlink is valid and the user has enabled <code>crawlChildren</code> we crawl those hyperlinks as well till we reach the depth.</p><p id="f4cef840-e358-4146-a50f-ba03a4cbeac1" class="">Now, let’s look into how indexing is working under the hood. We called index() method of the <a href="http://Indexer.java">Indexer.java</a> class.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="cd827c93-772b-4dc3-ba45-dec19c485a23" class="code"><code class="language-JavaScript">public void index(Document document) {
+    // ENTRY POINT
+    long start = System.currentTimeMillis();
+    List&lt;String&gt; tokens = tokenize(document.getBody());
+    generateInvertedIndex(document, tokens);
+    long end = System.currentTimeMillis();
+    log.info(&quot;Successfully indexed document with id: {} in {}ms&quot;, document.getId(), (end - start));
+}</code></pre><p id="acfafbc1-26e1-415c-a9fd-73e36a0f6641" class="">Here we first tokenize the content. This method does all those preprocessing that we discussed earlier. Note: we are not doing all those laborious tasks ourselves rather we are making use of Stanford NLP library. Again, all the packages are available on my Github repo so that you can check it out. </p><p id="d6496945-c71c-49ba-82bd-0902d6a41b9c" class="">The code is heavily commented so that you can understand it line by line. In this method we are lemmating the token and removing the invalid tokens. </p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="9835c111-2433-494f-ab8f-27152ac98fa3" class="code"><code class="language-JavaScript">private List&lt;String&gt; tokenize(String corpus) {
+    // convert the corpus to lowercase
+    Annotation annotation = new Annotation(corpus.toLowerCase());
+    pipeline.annotate(annotation);
+
+    // Extract tokens and lemmata from the annotation
+    List&lt;CoreLabel&gt; tokens = annotation.get(CoreAnnotations.TokensAnnotation.class);
+
+    // Build a list to store the results
+    List&lt;String&gt; tokenized = new ArrayList&lt;&gt;();
+
+    // Append the lemmatized tokens to the list
+    for (CoreLabel token : tokens) {
+        String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);
+        tokenized.add(lemma);
+    }
+
+    // remove the stop words from the tokenized words
+    return tokenized.stream().filter(token -&gt; !invalidToken(token)).collect(Collectors.toList());
+}</code></pre><p id="764fc4af-d6ae-433f-81a2-642be7123d52" class="">Post this we create our InvertedIndex. Note, that we are using an in memory hashmap for this, instead of storing this index to a datastore, since the amount of data is less.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="05aee364-923c-44ec-9ba0-1473a9270f0b" class="code"><code class="language-Java">// term -&gt; [dc1, dc2],
+private final static Map&lt;String, Set&lt;String&gt;&gt; IN_MEMORY_INDEX = new HashMap&lt;&gt;();
+// dc1 -&gt; document object (containing url, title etc)
+private final static Map&lt;String, Hit&gt; HIT_MAP = new HashMap&lt;&gt;();</code></pre><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="4a42a615-0876-4e1c-a582-441d51b2c093" class="code"><code class="language-Java">public void generateInvertedIndex(Document document, List&lt;String&gt; tokens) {
+        final String documentId = document.getId();
+        tokens.forEach(token -&gt; {
+            if (!IN_MEMORY_INDEX.containsKey(token)) {
+                IN_MEMORY_INDEX.put(token, new HashSet&lt;&gt;());
+            }
+            IN_MEMORY_INDEX.get(token).add(documentId);
+        });
+        HIT_MAP.put(documentId, Hit.builder()
+                .id(documentId)
+                .title(document.getTitle())
+                .url(document.getUrl())
+                .build());
+    }</code></pre><p id="5cb60799-36b9-4ce8-adf5-84786fc87cf8" class="">Here, we are going over each token, and checking if that exists in the IN_MEMORY_INDEX, if it doesn’t we create one entry and put our document which is nothing but an object that contains the detail such as url, title of the webpage, and unique id. </p><p id="e4a4f3ef-5a40-4f83-8b3c-0d1d9eaf570f" class="">We are also creating a reverse mapping so that we can link the document from its id. This is done for easy lookups during querying done by the user.</p><p id="efde054d-eb47-4451-8ef9-fd9380369a23" class="">
+</p><p id="09368617-0eaf-4af7-81f3-a49d2a65a53a" class="">Now, it’s time to implement our search API</p><h3 id="666e7405-fedc-4800-866e-8ba739452711" class="">Search API</h3><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="00e077f6-f77a-4367-8b13-ca15b14b50a5" class="code"><code class="language-JavaScript">POST /search?query=kishan</code></pre><p id="20a49834-3558-4114-97cf-ea8fa578494a" class="">Search api is fairly straightforward, all it takes is one query parameter named query. The result will be the list of web pages that contain the word kishan in them.</p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="5f0951f0-4682-4afe-9a80-f06f472129ee" class="code"><code class="language-Java">@Path(&quot;/search&quot;)
+@Tag(name = &quot;Search APIs&quot;, description = &quot;Use these APIs to search the web&quot;)
+@Produces(&quot;application/json&quot;)
+@Consumes(&quot;application/json&quot;)
+@AllArgsConstructor(onConstructor = @__(@Inject))
+@Slf4j
+public class SearchEngine {
+
+    private final Indexer indexer;
+
+    @POST
+    @Path(&quot;/&quot;)
+    public Response search(@NonNull @QueryParam(&quot;query&quot;) final String query) throws Exception {
+        try {
+            long start = System.currentTimeMillis();
+            List&lt;Hit&gt; hits = indexer.query(query);
+            long end = System.currentTimeMillis();
+            log.info(&quot;Successfully search the entire web for your query and it took only :{}ms&quot;, (end - start));
+            return Response.ok(hits).build();
+        } catch (Exception e) {
+            log.error(&quot;Unable to crawl: &quot;, e);
+            throw e;
+        }
+
+    }
+}</code></pre><p id="87a83cf7-a8be-449e-a8d3-ff94935002bf" class="">We pass the query to the query method inside the indexer class. Here’s how it works:</p><ol type="1" id="9bd8298f-1027-4482-a818-49feca2753a5" class="numbered-list" start="1"><li>We first break down the query into words by splitting it. </li></ol><ol type="1" id="f8934739-276a-4fa4-806f-1130f17f68da" class="numbered-list" start="2"><li>We then loop over each word and see if that is present in our IN_MEMORY_INDEX. If it is present we get the documentIds (unique id provided to each webpage).  We then use our reverse mapping that we created called HIT_MAP to get the complete detail out of the id such as the url, title of the webpage etc.</li></ol><ol type="1" id="8dfe0e98-8fcf-48c3-8b70-17e06261fabc" class="numbered-list" start="3"><li>We return the collated list of all the webpages that matched the term.</li></ol><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="506a0054-e48f-4f90-9731-094438a4d86d" class="code"><code class="language-Java">public List&lt;Hit&gt; query(String query) {
+    // split the word into terms and check in the index if they are present
+    List&lt;String&gt; terms = Arrays.stream(query.toLowerCase().split(&quot; &quot;)).toList();
+    List&lt;Hit&gt; hits = new ArrayList&lt;&gt;();
+    if (terms.isEmpty()) {
+        return hits;
+    }
+
+    terms.forEach(term -&gt; {
+        if (IN_MEMORY_INDEX.containsKey(term)) {
+            Set&lt;String&gt; documentIds = IN_MEMORY_INDEX.get(term);
+            hits.addAll(documentIds.stream().map(HIT_MAP::get).toList());
+        }
+    });
+
+    return hits;
+}</code></pre><h2 id="3c75f8fc-7c91-4391-b8eb-086402330daa" class="">Spin up your Search Engine</h2><ol type="1" id="776a3e3b-f38c-414d-b750-e830916443be" class="numbered-list" start="1"><li>Open up IntelliJ IDEA, and click on New followed by Project from Version Control.<figure id="445222aa-11e7-4b66-ac82-bab9eae430d3" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.12.24_PM.png"><img style="width:681.9375px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.12.24_PM.png"/></a></figure></li></ol><ol type="1" id="aef98d64-7a87-4780-9e10-46b5b22068b5" class="numbered-list" start="2"><li>Paste <a href="https://github.com/confusedconsciousness/orbit.git">https://github.com/confusedconsciousness/orbit.git</a> in URL and click on clone.<figure id="363eef1a-5d17-4c07-a686-bc3321e9c231" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.15.39_PM.png"><img style="width:2072px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.15.39_PM.png"/></a></figure></li></ol><ol type="1" id="ed7ddee5-8b59-4ab8-af88-0c8ef32ca69d" class="numbered-list" start="3"><li>In the top right corner, you’ll see a drop down to edit configuration. This is where we’ll be defining which jdk to use and which configuration to pick up during the runtime. <figure id="6ec8b83e-c901-43c4-8061-8f6d2c1f2d0c" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.17.26_PM.png"><img style="width:3584px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.17.26_PM.png"/></a></figure></li></ol><ol type="1" id="f0398a84-3514-40b8-bbbf-0ef4d40dcdce" class="numbered-list" start="4"><li>Click on the + icon to add a configuration and choose Application.<figure id="07e54909-a754-44e9-892c-ffd471aaaa80" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.19.05_PM.png"><img style="width:681.9375px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.19.05_PM.png"/></a></figure></li></ol><ol type="1" id="55b8dd09-e567-453f-9c0f-f49b63ed4b44" class="numbered-list" start="5"><li>Fill in the details such as the JDK version, the main Class which will be App in our case and the path to the configuration file which will be <code>config/local.yaml </code>prefixed by <code>server</code>. <figure id="04994bcf-c6a6-4c91-aad3-25bf657bf3aa" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.22.11_PM.png"><img style="width:2178px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.22.11_PM.png"/></a></figure></li></ol><ol type="1" id="9577e163-13df-4ec7-b897-36759bbe00e9" class="numbered-list" start="6"><li>Now click on the Run icon and you’ll start seeing logs in the terminal.<figure id="718ea2e7-5fa2-47bd-ab04-90cbf6cddf2b" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.22.32_PM.png"><img style="width:681.9375px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.22.32_PM.png"/></a></figure><figure id="09b8670d-344a-4eb6-beb6-d289922465e7" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.23.06_PM.png"><img style="width:3124px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.23.06_PM.png"/></a></figure></li></ol><ol type="1" id="252dd155-ce6e-4630-a4ec-49521b933a6d" class="numbered-list" start="7"><li>You’ll notice that the server has started on port 9090. Head to <a href="http://localhost:9090/swagger">localhost:9090/swagger</a> to test those APIs that we talked about. </li></ol><ol type="1" id="f5a9bfa2-2907-40f3-bc68-35ed1dcd5c29" class="numbered-list" start="8"><li>You can see there are two apis present. First let’s crawl any website. For this article I’ll crawl my personal website, but please don’t use my website while crawling. 🙏🏽<figure id="5fa17fca-0a4f-4b55-b621-0276d233c251" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.24.37_PM.png"><img style="width:3584px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.24.37_PM.png"/></a></figure></li></ol><ol type="1" id="dbc86f6c-9c45-4dfc-b4ef-454d49c1d097" class="numbered-list" start="9"><li>I have for the demonstration put the crawlChildren to be false, since I don’t want to put too much load on my small website.<figure id="33e0ff28-e9ea-4c13-9760-9627af9aa42b" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.26.52_PM.png"><img style="width:3046px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.26.52_PM.png"/></a></figure></li></ol><ol type="1" id="17dc3376-a155-46e9-8e94-429fe2e22687" class="numbered-list" start="10"><li>In logs you’ll see the logs that the crawler is crawling and indexing the website.<figure id="a7c0ee9b-f04e-44f3-b8a0-dc066d156bd5" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.27.33_PM.png"><img style="width:3396px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.27.33_PM.png"/></a></figure></li></ol><ol type="1" id="b08df8bf-5c47-42f8-bbc9-8d95aa200f95" class="numbered-list" start="11"><li>Let’s test out our search API. Let’s search for Authentication. And you’ll see in the response body the title and url of my website. That’s cool isn’t it.<figure id="51720b26-291b-4557-bf19-68800d88731f" class="image"><a href="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.32.14_PM.png"><img style="width:2896px" src="Make%20your%20own%20search%20engine%20from%20Scratch%205086f27b463e4a969c30c3b929e6ee08/Screenshot_2023-12-29_at_11.32.14_PM.png"/></a></figure></li></ol><p id="1984690e-da4c-43a1-82e4-4735685e22a9" class="">In logs you’ll see something like this: </p><script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-7Z9J3l1+EYfeaPKcGXu3MS/7T+w19WtKQY/n+xzmw4hZhJ9tyYmcUS+4QqAlzhicE5LAfMQSF3iFTK9bQdTxXg==" crossorigin="anonymous" referrerPolicy="no-referrer"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerPolicy="no-referrer"/><pre id="5a69c1ca-d6ef-49e0-8f39-a3c904f6056d" class="code"><code class="language-JavaScript">INFO  [2023-12-29 18:03:40,790] com.kishan.resources.SearchEngine: Successfully search the entire web for your query and it took only :0ms</code></pre><p id="3f8cc81f-6637-48c3-b003-206bdf8dc45d" class="">Alrighty right, now it is your turn to test it out. You’d definitely love it. Head over to Github and fork this repo and make changes or add cool functionality. <a href="https://github.com/confusedconsciousness/orbit">https://github.com/confusedconsciousness/orbit</a></p><p id="e755cf99-a824-4b93-82f9-570002a0fe89" class="">Please note: this implementation is overly simplified and high level, but it gives an overall understanding of how things work under the hood. I hope this article helped you understand the basics of search engine.</p><p id="086e5c7e-c3d0-4683-8502-dc904c2170d7" class="">Thanks a lot. </p><p id="a630d8c5-288c-426b-8654-4e02d282a533" class="">
+</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>

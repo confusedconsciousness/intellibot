@@ -1,14 +1,16 @@
 import logging
 import os
 
-from openai import responses
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
 from slack_sdk.errors import SlackApiError
+from ai.ai_model_chain import get_default_ai_model_chain
 
-from ai.AIModel import get_ai_model
-from ai.AiModelChain import AIModelChain, get_default_ai_model_chain
+from knowledge.rag_pipeline import RAGPipeline
+from utils.constant import SOURCE_DIRECTORY, CHROMA_DB_DIRECTORY, COLLECTION_NAME, CHUNK_SIZE, CHUNK_OVERLAP, \
+    EMBEDDING_MODEL_NAME, FORCE_RECREATE_STORE
+from utils.slack_utils import build_prompt_with_context
 
 load_dotenv()
 
@@ -20,6 +22,31 @@ app = App(token=os.getenv("SLACK_BOT_TOKEN"))
 MAX_MESSAGE_PER_THREAD = 10
 
 BOT_NAME = "Intellibot"
+
+user_name_cache = {}
+
+# Initialize RAG Pipeline
+rag_pipeline = None
+
+
+def initialize_rag():
+    global rag_pipeline
+    try:
+        logger.info("Initializing RAG Pipeline...")
+        rag_pipeline = RAGPipeline(
+            source_dir=SOURCE_DIRECTORY,
+            chroma_dir=CHROMA_DB_DIRECTORY,
+            collection_name=COLLECTION_NAME,
+            chunk_size=CHUNK_SIZE,
+            chunk_overlap=CHUNK_OVERLAP,
+            embedding_model_name=EMBEDDING_MODEL_NAME
+        )
+        logger.info("Setting up Vector Store...")
+        rag_pipeline.setup_vector_store(force_recreate=FORCE_RECREATE_STORE)
+        logger.info("RAG Pipeline initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize RAG Pipeline: {e}")
+        raise
 
 
 # --- Slack Message Handler ---
@@ -46,23 +73,28 @@ def handle_app_mention(body, say):
     bot_user_id = app.client.auth_test()["user_id"]
     user_query = text.replace(f"<@{bot_user_id}>", "").strip()
 
-    logger.info(f"Received app_mention from user {user_id} in channel {channel_id} with query: {user_query}")
-
-    if not user_query:
-        say(f"Hey <@{user_id}>, please provide a query after mentioning me!", thread_ts=thread_ts)
-        return
+    logger.info(f"[Slack] Received app_mention from user {user_id} in channel {channel_id} with query: {user_query}")
 
     # build context for the LLM
     messages = app.client.conversations_replies(channel=channel_id, limit=MAX_MESSAGE_PER_THREAD, ts=thread_ts)[
         "messages"]
-    prompt = build_context(messages)
+    conversation_context = build_conversation_context(messages)
+
+    # Get relevant documents using RAG
+    if rag_pipeline and rag_pipeline.vector_store_manager.get_collection_count() > 0:
+        relevant_docs = rag_pipeline.query(user_query, k=2)
+    else:
+        relevant_docs = []
+        logger.warning("RAG Pipeline not initialized or empty vector store")
+
+    prompt = build_prompt_with_context(
+        query=user_query,
+        conversation_history=conversation_context,
+        relevant_docs=relevant_docs,
+    )
 
     try:
-        # Initialize the Gemini model inside the handler for this specific call.
-        # We're now using 'gemini-pro' as requested.
-
         logger.info(f"Calling AI model with prompt: {prompt}")
-        # Use the AI model chain to generate a response, which will try multiple models if one fails
         response = get_default_ai_model_chain().generate(prompt)
         answer = response
     except Exception as e:
@@ -73,30 +105,44 @@ def handle_app_mention(body, say):
     say(answer, thread_ts=thread_ts)
 
 
-def build_context(messages):
-    """
-    Builds a context string from the last few messages in the thread.
-    """
-    # build context for the LLM
-    prompt_parts = []
+def build_conversation_context(messages: list) -> str:
+    """Builds a string representation of the conversation history."""
+    context_parts = []
     for message in messages:
         message_user_id = message.get("user")
         message_bot_id = message.get("bot_id")
-        sender_name = "Unknown"
+
         if message_bot_id:
             sender_name = BOT_NAME
         elif message_user_id:
-            try:
-                sender_name = app.client.users_info(user=message_user_id)["user"]["name"]
-            except SlackApiError:
-                logger.error(f"Failed to fetch user info for user ID {message_user_id}")
-                sender_name = "Unknown"
+            sender_name = get_user_name(message_user_id)
+        else:
+            sender_name = "Unknown"
 
-        prompt_parts.append(f"{sender_name}: {message.get('text', '')}")
+        context_parts.append(f"{sender_name}: {message.get('text', '')}")
 
-    return "\n".join(prompt_parts)
+    return "\n".join(context_parts)
+
+
+def get_user_name(user_id):
+    if user_id in user_name_cache:
+        return user_name_cache[user_id]
+    try:
+        user_info = app.client.users_info(user=user_id)
+        name = user_info["user"]["real_name"] or user_info["user"]["name"]
+        user_name_cache[user_id] = name
+        return name
+    except SlackApiError:
+        logger.error(f"Failed to fetch user info for user ID {user_id}")
+        return "Unknown"
 
 
 if __name__ == "__main__":
-    logger.info("Starting Slack app...")
-    SocketModeHandler(app, os.getenv("SLACK_APP_TOKEN")).start()
+    try:
+        # Initialize RAG pipeline before starting the Slack app
+        initialize_rag()
+        logger.info("Starting Slack app...")
+        SocketModeHandler(app, os.getenv("SLACK_APP_TOKEN")).start()
+    except Exception as e:
+        logger.error(f"Failed to start application: {e}")
+        raise
