@@ -5,7 +5,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
 from slack_sdk.errors import SlackApiError
-from ai.ai_model_chain import get_default_ai_model_chain
+from llm.ai_model_chain import get_default_ai_model_chain
 
 from knowledge.rag_pipeline import RAGPipeline
 from utils.constant import SOURCE_DIRECTORY, CHROMA_DB_DIRECTORY, COLLECTION_NAME, CHUNK_SIZE, CHUNK_OVERLAP, \

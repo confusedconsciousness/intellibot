@@ -1,6 +1,6 @@
 # this class uses chain of responsibility pattern to chain multiple AI models together
 # if one fails, it will try the next one
-from ai.ai_model import get_ai_model
+from llm.ai_model import get_ai_model
 
 class AIModelChain:
     def __init__(self, models):
